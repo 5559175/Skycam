@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SKYCAM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mpegts.js@1.7.3/dist/mpegts.min.js"></script>
+    <style>
+        @keyframes pulse-border { 0%, 100% { border-color: rgba(59, 130, 246, 0.4); } 50% { border-color: rgba(59, 130, 246, 1); } }
+        @keyframes pulse-red { 0%, 100% { border-color: rgba(239, 68, 68, 0.4); } 50% { border-color: rgba(239, 68, 68, 1); } }
+        .is-processing { animation: pulse-border 2s infinite; border-width: 2px; }
+        .is-recording { animation: pulse-red 2s infinite; border-width: 2px; }
+        pre::-webkit-scrollbar { width: 8px; }
+        pre::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-slate-900 text-white p-6 font-sans">
+
+    <div class="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center mb-6 bg-slate-800 p-4 rounded-lg shadow-lg gap-4 border-b-2 border-slate-700">
+        <h1 class="text-2xl font-bold text-blue-400 uppercase italic tracking-tighter text-shadow">SKYCAM</h1>
+        <div class="flex gap-2 flex-wrap justify-center">
+            <input type="number" id="hrs" value="1" step="0.5" class="w-16 bg-slate-700 p-2 rounded text-white border border-slate-600 outline-none">
+            <button onclick="cmd('start')" class="bg-blue-600 hover:bg-blue-500 px-3 py-2 rounded font-bold text-xs uppercase">Start</button>
+            <button onclick="cmd('autodetect')" class="bg-green-600 hover:bg-green-500 px-3 py-2 rounded font-bold text-xs text-center leading-tight uppercase">Auto-Detect<br>Meteors</button>
+            <button onclick="toggleLive()" id="live-btn" class="bg-purple-600 hover:bg-purple-500 px-3 py-2 rounded font-bold text-xs uppercase">Live Feed</button>
+            <button onclick="showSnap()" class="bg-indigo-600 hover:bg-indigo-500 px-3 py-2 rounded font-bold text-xs uppercase">Live Image</button>
+            <button onclick="cmd('stop')" class="bg-orange-600 hover:bg-orange-500 px-3 py-2 rounded font-bold text-xs uppercase">Stop</button>
+            <button onclick="cmd('stop_all')" class="bg-red-700 hover:bg-red-600 px-3 py-2 rounded font-bold text-xs uppercase">Stop All</button>
+        </div>
+    </div>
+
+    <div id="live-container" class="max-w-4xl mx-auto mb-8 hidden">
+        <div class="bg-black rounded-xl overflow-hidden border-2 border-purple-500 shadow-lg">
+            <div class="p-2 bg-slate-800 flex justify-between items-center">
+                <span class="text-[10px] font-black tracking-widest text-purple-400 ml-2 animate-pulse uppercase italic">● Live Camera Feed</span>
+                <button onclick="toggleLive()" class="text-xs font-bold px-2 text-slate-400 hover:text-white">CLOSE ✕</button>
+            </div>
+            <video id="live-video" controls autoplay muted class="w-full aspect-video bg-black"></video>
+        </div>
+    </div>
+
+    <div id="snap-container" class="max-w-4xl mx-auto mb-8 hidden">
+        <div class="bg-black rounded-xl overflow-hidden border-2 border-indigo-500 shadow-lg">
+            <div class="p-2 bg-slate-800 flex justify-between items-center">
+                <span class="text-[10px] font-black tracking-widest text-indigo-400 ml-2 uppercase italic">📸 4K Static Snapshot</span>
+                <button onclick="document.getElementById('snap-container').classList.add('hidden')" class="text-xs font-bold px-2 text-slate-400">CLOSE ✕</button>
+            </div>
+            <img id="snap-img" src="" class="w-full h-auto bg-black" alt="Live Camera Snapshot">
+        </div>
+    </div>
+
+    <div class="max-w-4xl mx-auto mb-4 flex gap-2">
+        <button onclick="viewLog()" class="text-[10px] bg-slate-800 border border-slate-700 px-4 py-2 rounded font-bold tracking-widest uppercase">View Pipeline Log</button>
+        <button onclick="delLog()" class="text-[10px] text-red-400 bg-slate-800 border border-slate-700 px-4 py-2 rounded font-bold tracking-widest uppercase">Clear Log</button>
+    </div>
+    <pre id="log-viewer" class="max-w-4xl mx-auto mb-8 p-4 bg-black text-green-500 text-[10px] hidden overflow-auto max-h-64 rounded border border-slate-800 font-mono"></pre>
+
+    <div class="max-w-4xl mx-auto mb-6 flex items-center gap-4">
+        <button onclick="loadFolders()" class="bg-slate-700 hover:bg-slate-600 border border-slate-500 px-6 py-2 rounded-full font-bold text-blue-300 active:scale-95 transition-all text-xs uppercase">🔄 Refresh</button>
+        <div id="path-display" class="text-slate-500 font-mono text-xs uppercase tracking-widest truncate italic">/ Root</div>
+    </div>
+
+    <div id="main-view" class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 pb-20"></div>
+
+    <script>
+        const pathDisplay = document.getElementById('path-display');
+        const view = document.getElementById('main-view');
+        let player = null;
+
+        // Browser History Support
+        window.onpopstate = (e) => { e.state?.view === 'files' ? loadFiles(e.state.type, e.state.folder, false) : loadFolders(false); };
+
+        async function cmd(action) {
+            const h = document.getElementById('hrs').value;
+            const res = await fetch('/' + action, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({hours: h}) });
+            const data = await res.json(); alert(data.status); loadFolders();
+        }
+
+        async function viewLog() {
+            const el = document.getElementById('log-viewer');
+            if (el.classList.contains('hidden')) {
+                const res = await fetch('/log'); el.innerText = await res.text(); el.classList.remove('hidden'); el.scrollTop = el.scrollHeight;
+            } else { el.classList.add('hidden'); }
+        }
+
+        async function delLog() { if(confirm('Clear Log?')) { await fetch('/log', {method:'DELETE'}); viewLog(); } }
+
+        function showSnap() {
+            const container = document.getElementById('snap-container');
+            const img = document.getElementById('snap-img');
+            img.src = '/snap_proxy?t=' + new Date().getTime();
+            container.classList.remove('hidden');
+            container.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function toggleLive() {
+            const container = document.getElementById('live-container');
+            const videoElement = document.getElementById('live-video');
+            const btn = document.getElementById('live-btn');
+            if (container.classList.contains('hidden')) {
+                if (mpegts.isSupported()) {
+                    player = mpegts.createPlayer({type: 'flv', isLive: true, url: '/stream_proxy'}, {enableStashBuffer: false, liveBufferLatencyChasing: true, autoCleanupSourceBuffer: true});
+                    player.attachMediaElement(videoElement); player.load(); player.play();
+                    container.classList.remove('hidden'); btn.classList.replace('bg-purple-600', 'bg-red-600'); btn.innerText = "Close Live";
+                    container.scrollIntoView({ behavior: 'smooth' });
+                }
+            } else {
+                if (player) { player.pause(); player.unload(); player.detachMediaElement(); player.destroy(); player = null; }
+                container.classList.add('hidden'); btn.classList.replace('bg-red-600', 'bg-purple-600'); btn.innerText = "Live Feed";
+            }
+        }
+
+        async function loadFolders(push = true) {
+            if (push) history.pushState({view: 'folders'}, "", "#root");
+            pathDisplay.innerText = "/ ROOT";
+            const response = await fetch('/folders');
+            const folders = await response.json();
+            view.innerHTML = '';
+            folders.forEach(f => {
+                const card = document.createElement('div');
+                card.className = "bg-slate-800 p-8 rounded-xl border border-slate-700 text-center cursor-pointer hover:border-blue-500 transition-all shadow-lg group relative";
+                const isMet = f.type === 'meteors';
+                const tag = `<span class="absolute top-2 right-3 text-[9px] ${isMet?'text-green-500':'text-blue-500'} font-black tracking-tighter uppercase">${isMet?'Meteors':'Recordings'}</span>`;
+                const delBtn = `<button onclick="event.stopPropagation(); delFolder('${f.type}', '${f.name}')" class="absolute top-2 left-3 text-[9px] text-red-600 font-black opacity-0 group-hover:opacity-100 uppercase italic">Del Folder</button>`;
+                card.innerHTML = `${tag}${delBtn}<span class="text-4xl block">${isMet?'☄️':'📁'}</span><b class="mt-4 block font-mono text-lg">${f.name}</b>`;
+                card.onclick = () => loadFiles(f.type, f.name);
+                view.appendChild(card);
+            });
+        }
+
+        async function loadFiles(type, folder, push = true) {
+            if (push) history.pushState({view: 'files', type, folder}, "", `#${type}-${folder}`);
+            pathDisplay.innerHTML = `<span class="text-blue-500">/ ${type.toUpperCase()} /</span> ${folder}`;
+            view.innerHTML = '';
+            if (type === 'meteors') {
+                const b = document.createElement('div'); b.className = "col-span-full mb-4";
+                b.innerHTML = `<button onclick="runConcat('${folder}')" class="w-full py-3 bg-green-700 hover:bg-green-600 rounded-lg font-black text-xs tracking-widest shadow-lg border border-green-500/30 uppercase">⚡ Concatenate All (.MP4)</button>`;
+                view.appendChild(b);
+            }
+            const response = await fetch(`/files/${type}/${folder}`);
+            const files = await response.json();
+            files.forEach(f => {
+                const item = document.createElement('div');
+                const isBusy = f.status !== "IDLE";
+                const isRec = f.status === "RECORDING";
+                item.className = `bg-slate-800 rounded-lg overflow-hidden border shadow-xl relative transition-all ${isRec ? 'is-recording border-red-500' : (isBusy ? 'is-processing' : 'border-slate-700')}`;
+                const overlay = isBusy ? `<div class="absolute inset-0 bg-slate-900/90 z-10 flex flex-col items-center justify-center"><div class="w-8 h-8 border-2 ${isRec ? 'border-red-500' : 'border-blue-500'} border-t-transparent rounded-full animate-spin"></div><span class="mt-3 text-[10px] font-black ${isRec ? 'text-red-500' : 'text-blue-400'} tracking-widest uppercase italic text-center">${isRec ? 'RECORDING...' : f.status + '...'}</span></div>` : '';
+                const manualButtons = (type === 'skycam' && !isBusy) ? `<button onclick="process('${f.path}', 'timelapse')" class="text-blue-400 hover:text-white uppercase">TL</button><button onclick="process('${f.path}', 'transcode')" class="text-blue-400 hover:text-white uppercase">720</button>` : '';
+                item.innerHTML = `${overlay}<div class="p-3 bg-slate-900 flex justify-between items-center text-[10px] font-black uppercase"><span class="truncate pr-4 ${isBusy ? (isRec ? 'text-red-500' : 'text-blue-400') : 'text-slate-500'} font-mono">${f.name}</span><div class="flex gap-4">${manualButtons}<button onclick="del('${f.path}', '${type}', '${folder}')" class="text-red-600 hover:text-white ${isBusy ? 'opacity-20 pointer-events-none' : ''} uppercase">Del</button></div></div><video controls playsinline class="w-full bg-black aspect-video ${isBusy ? 'opacity-0' : ''}"><source src="/video/${f.path}" type="video/mp4"></video>`;
+                view.appendChild(item);
+            });
+        }
+
+        async function process(path, type) { const res = await fetch(`/${type}/${path}`, { method: 'POST' }); alert((await res.json()).status); const p = path.split('/'); loadFiles(p[0], p[1], false); }
+        async function delFolder(t, f) { if(confirm(`Delete folder ${f}?`)) { await fetch(`/delete_folder/${t}/${f}`, {method:'DELETE'}); loadFolders(false); } }
+        async function runConcat(f) { if(!confirm('Join clips?')) return; pathDisplay.innerText = "CONCATENATING..."; const r = await fetch(`/concat/${f}`, {method:'POST'}); alert((await r.json()).status); loadFiles('meteors', f, false); }
+        async function del(p, t, f) { if(confirm('Delete file?')) { await fetch('/delete/' + p, {method:'DELETE'}); loadFiles(t, f, false); } }
+
+        loadFolders(false);
+    </script>
+</body>
+</html>
