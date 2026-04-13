@@ -47,8 +47,9 @@ trap finalize_video SIGTERM SIGINT
 
 ffmpeg -hide_banner -y -loglevel error \
 -rtsp_transport tcp \
+-timeout 30000000 \
 -use_wallclock_as_timestamps 1 \
--i "rtsp://admin:password@ip.of.camera:554/h265Preview_01_main" \
+-i "rtsp://admin:T3mpl379@192.168.43.249:554/h265Preview_01_main" \
 -t "$SECONDS" \
 -vcodec copy -an \
 -f mpegts \
