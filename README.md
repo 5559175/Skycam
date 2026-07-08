@@ -17,7 +17,7 @@ The app runs in Python/Flask on TCP/5050 via a Docker container.
 
 - When dark, manually set the length of recording (in hours)
 - Press the "Auto-Detect Meteors" button
-- It will record the RTSP stream from the camera of desired length, and once finished it automatically processes and clips the footage using MetDetPy
+- It will record the RTSP stream from the camera of desired length, and once finished it automatically processes and clips the footage using [MetDetPy](https://github.com/LilacMeteorObservatory/MetDetPy)
 
 In the morning, depending on sky clarity and meteor prevalance you should have a bunch of meteor clips that you can view.
 
@@ -41,9 +41,9 @@ With my hardware I achieve 30-60it/sec equating to ~5.7x speed, meaning a 4-hour
   
 - One-click recording and autodetection of meteors from recorded footage works like this:
   - The "Auto-Detect Meteors" button records 4K footage from the Reolink camera for the specified duration (set from the box next to "Start") then...
-  - Once recording is complete, it transcodes the video to 720p (ready to feed to MetDetPy to speed up processing).
-  - Once transcoding is complete, MetDetPy processes the 720p footage to detect meteors.
-  - Any detections are then automatically clipped out using MetDetPy's ClipToolkit as .mp4 files (clipping is done however from the **original 4K file** at the timestamps detected in order to maintain quality of clips).
+  - Once recording is complete, it transcodes the video to 720p (ready to feed to [MetDetPy](https://github.com/LilacMeteorObservatory/MetDetPy) to speed up processing).
+  - Once transcoding is complete, [MetDetPy](https://github.com/LilacMeteorObservatory/MetDetPy) processes the 720p footage to detect meteors.
+  - Any detections are then automatically clipped out using [MetDetPy](https://github.com/LilacMeteorObservatory/MetDetPy)'s ClipToolkit as .mp4 files (clipping is done however from the **original 4K file** at the timestamps detected in order to maintain quality of clips).
     
 # My Hardware
 I run this on my NAS, an HP Gen 8 Microserver running Debian 13 with Openmediavault 8 - I use the OMV compose plugin for docker containers (including this one). 
@@ -53,7 +53,7 @@ The server runs 24/7 and to save cost has a very low power (17W TDP) Intel Xeon 
 # Quirks and Customisations
 I use the offical NVidia driver (580 branch) due to the age of the Quadro P600.
 
-To get the MetDetPy CUDA provider acceleration working properly with this older card/driver on Debian 13, I had to build a **Python 3.10** venv in which to run MetDetPy using uv and pip. I arrived at this through a LOT of trial and error and **Gemini** assistance.
+To get the MetDetPy CUDA provider acceleration working properly with this older card/driver on Debian 13, I had to build a **Python 3.10** venv in which to run [MetDetPy](https://github.com/LilacMeteorObservatory/MetDetPy) using uv and pip. I arrived at this through a LOT of trial and error and **Gemini** assistance.
 
 The _requirements.txt_ I use is included in the **"MetDetPy_customisations"** folder along with a script I call to run it to make use of my Quadro P600.
 
