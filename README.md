@@ -30,6 +30,9 @@ With my hardware I achieve 30-60it/sec equating to ~5.7x speed, meaning a 4-hour
 ![Meteor Clips](skycam3.jpg)
 ![Logging](skycam4.jpg)
 
+# My YouTube channel with meteor clips
+https://www.youtube.com/@TechNoirPico
+
 # Other Features / Further explanation of one-click processing
 
 - Start/Stop recording from 4K Reolink RTSP stream - useful to capture any footage without the meteor processing pipeline.
