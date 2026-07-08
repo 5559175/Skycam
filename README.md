@@ -4,7 +4,7 @@ Through a LOT of trial and error, Gemini coded most of it for me as I am not a d
 
 I run this on my NAS, an HP Gen 8 Microserver running Debian 13 with Openmediavault 8 - I use the OMV compose plugin for docker containers (including this one). 
 
-The server has an Intel Xeon E3-1220L (2C/4T), 16GB RAM and Nvidia Quadro P600 which is used for acceleration of encode/decode with ffpmeg, and for the portions of MetDetPy which can be accelerated with CUDA.
+The server runis 24/7 and to save cost has a very low power (17W TDP) Intel Xeon E3-1220L v2 (2C/4T), 16GB RAM and Nvidia Quadro P600 GPU which is used for acceleration of encode/decode with ffpmeg, and for the portions of MetDetPy which can be accelerated with CUDA.
 
 I use the offical NVidia driver (580 branch) due to the age of this card.
 
