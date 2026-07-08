@@ -21,6 +21,13 @@ In the morning, depending on sky clarity and meteor prevalance you should have a
 
 With my hardware I achieve 30-60it/sec equating to ~5.7x speed, meaning a 4-hour recording can be processed in less than 45 minutes.
 
+# Screenshots
+
+![Main View](skycam1.jpg)
+![Live Feed](skycam2.jpg)
+![Meteor Clips](skycam3.jpg)
+![Logging](skycam4.jpg)
+
 # Other Features / Further explanation of one-click processing
 
 - Start/Stop recording from 4K Reolink RTSP stream - useful to capture any footage without the meteor processing pipeline.
