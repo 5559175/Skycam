@@ -7,7 +7,7 @@ I use a power-over-ethernet Reolink CX810 IP security camera mounted on a north-
 
 Through a **LOT** of trial and error, **Gemini** coded this app and portions of the scripts for me as I am **not** a developer but I do have lots of Linux and other computing experience.
 
-The app runs in Python/Flask on TCP/5050 in a Docker container.
+The app runs in Python/Flask on TCP/5050 via a Docker container.
 
 # Main Function
 
