@@ -5,7 +5,7 @@
 
 I use a power-over-ethernet Reolink CX810 IP security camera mounted on a north-facing wall pointed at the sky - it produces crisp 4K footage during the day and due to its F1.0 lens and 1/1.8" sensor, very good **colour** low-light footage in hours of darkness without needing IR LED illumination.
 
-This makes it an excellent/low-cost way to observe footage of weather and other phenomena such as aurora, meteors and bolides.
+This makes it an excellent way to observe footage of weather and other phenomena such as aurora, meteors and bolides.
 
 Through a **LOT** of trial and error, **Gemini** coded this app and portions of the scripts for me as I am **not** a developer but I do have lots of Linux and other computing experience.
 
