@@ -36,7 +36,7 @@ def index():
 
 @app.route('/stream_proxy')
 def stream_proxy():
-    url = "http://ip.of.camera/flv?port=1935&app=bcs&stream=channel0_main.bcs&user=admin&password=password"
+    url = "http://camera.ip/flv?port=1935&app=bcs&stream=channel0_main.bcs&user=admin&password=password"
     def generate():
         try:
             r = requests.get(url, stream=True, timeout=10)
@@ -49,7 +49,7 @@ def stream_proxy():
 
 @app.route('/snap_proxy')
 def snap_proxy():
-    url = "http://ip.of.camera/cgi-bin/api.cgi?cmd=Snap&channel=0&rs=1&user=admin&password=password&width=3840&height=2160"
+    url = "http://camera.ip/cgi-bin/api.cgi?cmd=Snap&channel=0&rs=1&user=admin&password=password&width=3840&height=2160"
     try:
         r = requests.get(url, timeout=10)
         return Response(r.content, mimetype='image/jpeg')
@@ -77,7 +77,10 @@ def stop():
 
 @app.route('/stop_all', methods=['POST'])
 def stop_all():
-    for proc in ['skycamcapture.sh', 'pipeline.sh', 'MetDetPy.py', 'ClipToolkit.py']:
+# 1. Send SIGUSR1 to skycamcapture to tell it NOT to start the pipeline
+    subprocess.run(['pkill', '-USR1', '-f', 'skycamcapture.sh'])
+    # 2. Kill everything else normally
+    for proc in ['pipeline.sh', 'MetDetPy.py', 'ClipToolkit.py']:
         subprocess.run(['pkill', '-f', proc])
     return jsonify({"status": "ALL CAPTURE AND PIPELINES TERMINATED"})
 

@@ -36,11 +36,26 @@ log_duration $STEP_START
 # 2. MetDetPy Analysis
 echo -n "$(date '+%Y-%m-%d %H:%M:%S') - STEP 2: MetDetPy analysis..." >> "$LOG_FILE"
 STEP_START=$(date +%s)
-/bin/bash /root/MetDetPy/run_p600.sh "$TRANSCODE_720P" > /dev/null 2>&1
+
+# Extract just the base filename of the video (e.g., capture_000937_720p) for a unique log name
+VIDEO_BASE=$(basename "${TRANSCODE_720P%.mp4}")
+
+# Define a unique, permanent log file path for this specific video file
+METDET_LOG="/export/media/skycam/${DATE_VAL}_${VIDEO_BASE}_metdetpy.log"
+
+# Run with double quotes so variables expand properly, saving full output permanently
+/bin/bash -l -c "/root/MetDetPy/run_p600.sh \"$TRANSCODE_720P\"" > "$METDET_LOG" 2>&1
+
 if [ $? -eq 0 ]; then
     log_duration $STEP_START
+    # Ensure the successful log file gets picked up by the permission cleanup in Step 5
+    chown 1000:1000 "$METDET_LOG"
 else
-    echo " FAILED" >> "$LOG_FILE"
+    # Append the last 3 lines of the actual crash to your main pipeline.log
+    echo -n " FAILED. Recent output: " >> "$LOG_FILE"
+    tail -n 3 "$METDET_LOG" | tr '\n' ' ' >> "$LOG_FILE"
+    echo "" >> "$LOG_FILE"
+    chown 1000:1000 "$METDET_LOG"
 fi
 
 # 3. Path Swap in JSON
