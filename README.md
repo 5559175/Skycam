@@ -3,7 +3,9 @@
 
 # Background
 
-I use a power-over-ethernet Reolink CX810 IP security camera mounted on a north-facing wall pointed at the sky - it produces crisp 4K footage during the day and due to its F1.0 lens and 1/1.8" sensor, very good **colour** low-light footage in hours of darkness, without needing IR LED illumination. This makes it an excellent/low-cost way to observe footage of weather and other phenomena such as aurora, meteors and bolides.
+I use a power-over-ethernet Reolink CX810 IP security camera mounted on a north-facing wall pointed at the sky - it produces crisp 4K footage during the day and due to its F1.0 lens and 1/1.8" sensor, very good **colour** low-light footage in hours of darkness without needing IR LED illumination.
+
+This makes it an excellent/low-cost way to observe footage of weather and other phenomena such as aurora, meteors and bolides.
 
 Through a **LOT** of trial and error, **Gemini** coded this app and portions of the scripts for me as I am **not** a developer but I do have lots of Linux and other computing experience.
 
@@ -38,10 +40,10 @@ With my hardware I achieve 30-60it/sec equating to ~5.7x speed, meaning a 4-hour
 - Button to concatenate all meteor clips into a single .mp4
   
 - One-click recording and autodetection of meteors from recorded footage works like this:
-  - The "Auto-Detect Meteors" pipeline button: records 4K footage from the Reolink camera for the specified duration (set from the box next to "Start"). then...
-  - Once recording is complete, it transcodes the video to 720p (ready to feed to MetDetPy to speed up processing - on my hardware trying to process the 4K footage is prohibitive).
+  - The "Auto-Detect Meteors" button records 4K footage from the Reolink camera for the specified duration (set from the box next to "Start") then...
+  - Once recording is complete, it transcodes the video to 720p (ready to feed to MetDetPy to speed up processing).
   - Once transcoding is complete, MetDetPy processes the 720p footage to detect meteors.
-  - Any detections are then automatically clipped out using MetDetPy's ClipToolkit as .mp4 files (clipping is done however from the original 4K file at the timestamps detected in order to maintain quality of clips).
+  - Any detections are then automatically clipped out using MetDetPy's ClipToolkit as .mp4 files (clipping is done however from the **original 4K file** at the timestamps detected in order to maintain quality of clips).
     
 # My Hardware
 I run this on my NAS, an HP Gen 8 Microserver running Debian 13 with Openmediavault 8 - I use the OMV compose plugin for docker containers (including this one). 
