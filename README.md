@@ -38,6 +38,7 @@ With my hardware I achieve 30-60it/sec equating to ~5.7x speed, meaning a 4-hour
 - Button to transcode any previous recording or clip (only within the configured folders) to 720p
 - Button to create 50x speed timelapse of any previous recording or clip (only within the configured folders)
 - Button to concatenate all meteor clips into a single .mp4
+- Basic file/folder management - deletion of individual recordings/clips/folders
   
 - One-click recording and autodetection of meteors from recorded footage works like this:
   - The "Auto-Detect Meteors" button records 4K footage from the Reolink camera for the specified duration (set from the box next to "Start") then...
