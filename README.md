@@ -69,6 +69,6 @@ patchelf --clear-execstack .venv/lib/python3.10/site-packages/onnxruntime/capi/l
 patchelf --clear-execstack .venv/lib/python3.10/site-packages/onnxruntime/capi/onnxruntime_pybind11_state.cpython-310-x86_64-linux-gnu.so
 ```
 
-The clip_cfg.json I use (put this in MetDetPy's "global" dir) has thresholds set specific to my sky conditions and camera and it seems to reduce false-positives as much as possible but still some remain.
+The _clip_cfg.json_ I use (put this in MetDetPy's "_global_" dir) has thresholds set specific to my sky conditions and camera and it seems to reduce false-positives as much as possible but still some remain.
 
-I have also modified the videowriter.py (put this in MetDetPy's "MetLib" folder) to use "-c copy" with ffmpeg so that it doesn't re-encode (and thus reduce quality) when creating clips.
+I have also modified the _videowriter.py_ (put this in MetDetPy's "_MetLib_" folder) to use "-c copy" with ffmpeg so that it doesn't re-encode (and thus reduce quality) when creating clips.
